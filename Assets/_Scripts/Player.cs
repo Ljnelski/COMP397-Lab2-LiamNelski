@@ -4,57 +4,53 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private float movementForce;
-    [SerializeField] private float jumpForce;
+    [SerializeField] private float maxSpeed;
+    [SerializeField] private float jumpHeight;
+    [SerializeField] private float gravity;
+
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundRadius;
+    [SerializeField] private LayerMask ground;
+
+    [SerializeField] private Vector3 velocity;
     
     private bool isGrounded;
-    private Rigidbody rbody;
+    private CharacterController controller;
     // Start is called before the first frame update
     void Start()
     {
-        rbody = GetComponent<Rigidbody>();
+        controller = GetComponent<CharacterController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (isGrounded)
-        {
-            if (Input.GetAxis("Horizontal") > 0.1f)
-            {
-                rbody.AddForce(Vector3.right * movementForce);
-            }
-            else if (Input.GetAxis("Horizontal") < -0.1f)
-            {
-                rbody.AddForce(Vector3.left * movementForce);
-            }
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundRadius, ground);
 
-            if (Input.GetAxis("Vertical") > 0.1f)
-            {
-                rbody.AddForce(Vector3.forward * movementForce);
-            }
-            else if (Input.GetAxis("Vertical") < -0.1f)
-            {
-                rbody.AddForce(Vector3.back * movementForce);
-            }
-            if (Input.GetAxis("Jump") > 0.1f)
-            {
-                rbody.AddForce(Vector3.up * jumpForce);
-            }
-        }
-    }
-    private void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
+        if (isGrounded && velocity.y < 0f)
         {
-            isGrounded = true;
+            velocity.y = -2.0f;
         }
-    }
-    private void OnCollisionExit(Collision other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
+
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        Vector3 move = transform.right * x + transform.forward * z;
+
+        controller.Move(move * maxSpeed * Time.deltaTime);
+
+        if (Input.GetButton("Jump") && isGrounded)
         {
-            isGrounded = false;
+            velocity.y = Mathf.Sqrt(jumpHeight * -2.0f * gravity);
         }
+
+        velocity.y += gravity * Time.deltaTime;
+
+        controller.Move(velocity * Time.deltaTime);
+    }
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(groundCheck.position, groundRadius);
     }
 }
