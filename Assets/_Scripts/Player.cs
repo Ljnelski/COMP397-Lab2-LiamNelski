@@ -5,7 +5,9 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [SerializeField] private float movementForce;
-
+    [SerializeField] private float jumpForce;
+    
+    private bool isGrounded;
     private Rigidbody rbody;
     // Start is called before the first frame update
     void Start()
@@ -16,22 +18,43 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetAxis("Horizontal") > 0.1f)
+        if (isGrounded)
         {
-            rbody.AddForce(Vector3.right * movementForce);
-        }
-        else if (Input.GetAxis("Horizontal") < -0.1f)
-        {
-            rbody.AddForce(Vector3.left * movementForce);
-        }
+            if (Input.GetAxis("Horizontal") > 0.1f)
+            {
+                rbody.AddForce(Vector3.right * movementForce);
+            }
+            else if (Input.GetAxis("Horizontal") < -0.1f)
+            {
+                rbody.AddForce(Vector3.left * movementForce);
+            }
 
-        if (Input.GetAxis("Vertical") > 0.1f)
-        {
-            rbody.AddForce(Vector3.forward * movementForce);
+            if (Input.GetAxis("Vertical") > 0.1f)
+            {
+                rbody.AddForce(Vector3.forward * movementForce);
+            }
+            else if (Input.GetAxis("Vertical") < -0.1f)
+            {
+                rbody.AddForce(Vector3.back * movementForce);
+            }
+            if (Input.GetAxis("Jump") > 0.1f)
+            {
+                rbody.AddForce(Vector3.up * jumpForce);
+            }
         }
-        else if (Input.GetAxis("Vertical") < -0.1f)
+    }
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("Ground"))
         {
-            rbody.AddForce(Vector3.back * movementForce);
+            isGrounded = true;
+        }
+    }
+    private void OnCollisionExit(Collision other)
+    {
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = false;
         }
     }
 }
